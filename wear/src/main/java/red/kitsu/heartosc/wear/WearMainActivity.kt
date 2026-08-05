@@ -1,4 +1,4 @@
-package com.hizkifw.heartosc // Ensure this matches your project
+package red.kitsu.heartosc // Ensure this matches your project
 
 import android.Manifest
 import android.content.BroadcastReceiver
