@@ -1,11 +1,38 @@
-- name: Upload Phone APK
+name: Build HeartOSC APKs
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Phone and Wear APKs
+      run: ./gradlew assembleDebug
+
+    - name: Upload Phone APK
       uses: actions/upload-artifact@v4
       with:
         name: HeartOSC-Phone-App
-        path: app/build/outputs/apk/debug/*.apk  # <--- This grabs the phone APK from the 'app' folder
+        path: app/build/outputs/apk/debug/*.apk
 
     - name: Upload Wear OS APK
       uses: actions/upload-artifact@v4
       with:
         name: HeartOSC-Wear-App
-        path: wear/build/outputs/apk/debug/*.apk # <--- This grabs the watch APK from the 'wear' folder
+        path: wear/build/outputs/apk/debug/*.apk
