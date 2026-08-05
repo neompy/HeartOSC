@@ -1,4 +1,4 @@
-package com.hizkifw.heartosc // Ensure this matches your project
+package red.kitsu.heartosc // Ensure this matches your project
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
