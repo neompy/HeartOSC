@@ -1,42 +1,45 @@
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
-    compileSdk 34
+    compileSdk = 34
 
     defaultConfig {
-        // IMPORTANT: Change this if your package name is different
-        applicationId "com.hizkifw.heartosc"
-        minSdk 26
-        targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        applicationId = "com.hizkifw.heartosc"
+        minSdk = 26
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        getByName("release") {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
+
     buildFeatures {
-        viewBinding true
+        viewBinding = true
     }
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'com.google.android.gms:play-services-wearable:18.0.0'
-    implementation 'androidx.percentlayout:percentlayout:1.0.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.3.1'
-    implementation 'androidx.wear:wear:1.3.0'
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("com.google.android.gms:play-services-wearable:18.0.0")
+    implementation("androidx.percentlayout:percentlayout:1.0.0")
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.wear:wear:1.3.0")
     
-    // NEW: Jetpack Health Services for Wear OS 3+ Heart Rate
-    implementation "androidx.health:health-services-client:1.0.0-beta03"
-    implementation "com.google.guava:guava:31.1-android"
-    implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.6.4"
+    // Jetpack Health Services for Wear OS 3+ Heart Rate
+    implementation("androidx.health:health-services-client:1.0.0-beta03")
+    implementation("com.google.guava:guava:31.1-android")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.6.4")
 }
