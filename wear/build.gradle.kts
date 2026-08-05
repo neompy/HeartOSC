@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hizkifw.heartosc"
+    namespace = "red.kitsu.heartosc"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hizkifw.heartosc"
+        applicationId = "red.kitsu.heartosc"
         minSdk = 30
         targetSdk = 33
         versionCode = 1
