@@ -90,7 +90,9 @@ class HeartRateService : Service() {
         val messageClient = Wearable.getMessageClient(this)
         Wearable.getNodeClient(this).connectedNodes.addOnSuccessListener { nodes ->
             for (node in nodes) {
-                messageClient.sendMessage(node.id, "/heartrate", bpm.toString().toByteArray())
+                // Sending as a raw Integer byte array
+                val buffer = java.nio.ByteBuffer.allocate(4).putInt(bpm)
+                messageClient.sendMessage(node.id, "/heartrate", buffer.array())
             }
         }
     }
