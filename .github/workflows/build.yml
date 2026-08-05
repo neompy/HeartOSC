@@ -1,0 +1,11 @@
+- name: Upload Phone APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: HeartOSC-Phone-App
+        path: app/build/outputs/apk/debug/*.apk  # <--- This grabs the phone APK from the 'app' folder
+
+    - name: Upload Wear OS APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: HeartOSC-Wear-App
+        path: wear/build/outputs/apk/debug/*.apk # <--- This grabs the watch APK from the 'wear' folder
