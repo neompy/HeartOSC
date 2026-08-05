@@ -1,33 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hizkifw.heartosc">
 
     <uses-feature android:name="android.hardware.type.watch" />
+    
+    <!-- Required permissions for modern Wear OS background tracking -->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required for Android 14+ (Wear OS 4) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!-- Required for Android 13+ (Wear OS 4) to show the service notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="HeartOSC Wear"
+        android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
-
-        <meta-data
-            android:name="com.google.android.wearable.standalone"
-            android:value="false" />
         
-        <uses-library android:name="com.google.android.wearable" android:required="false" />
+        <uses-library
+            android:name="com.google.android.wearable"
+            android:required="true" />
 
         <activity
-            android:name=".WearMainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The background tracking service -->
+        <service 
+            android:name=".HeartRateService"
+            android:foregroundServiceType="health"
+            android:exported="false" />
+
     </application>
 </manifest>
