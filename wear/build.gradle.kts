@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace = "com.hizkifw.heartosc" // <-- ADD THIS LINE HERE
     compileSdk = 34
 
     defaultConfig {
@@ -13,6 +14,8 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    
+    // ... the rest of the file remains the same ...
 
     buildTypes {
         getByName("release") {
