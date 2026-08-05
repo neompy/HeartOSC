@@ -1,53 +1,42 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    namespace = "red.kitsu.heartosc.wear"
-    compileSdk = 36
+    compileSdk 34
 
     defaultConfig {
-        applicationId = "red.kitsu.heartosc" // Must match the phone app ID to connect via Wearable API
-        minSdk = 26
-        targetSdk = 36
-        // Keep Wear releases in a separate range from the phone APK.
-        versionCode = 1_000_005
-        versionName = "1.2.0"
+        // IMPORTANT: Change this if your package name is different
+        applicationId "com.hizkifw.heartosc"
+        minSdk 26
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
-        compose = true
+        viewBinding true
     }
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.fragment)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.play.services.wearable)
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'com.google.android.gms:play-services-wearable:18.0.0'
+    implementation 'androidx.percentlayout:percentlayout:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.1'
+    implementation 'androidx.wear:wear:1.3.0'
+    
+    // NEW: Jetpack Health Services for Wear OS 3+ Heart Rate
+    implementation "androidx.health:health-services-client:1.0.0-beta03"
+    implementation "com.google.guava:guava:31.1-android"
+    implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.6.4"
 }
