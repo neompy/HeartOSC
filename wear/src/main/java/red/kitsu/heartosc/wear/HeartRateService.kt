@@ -65,11 +65,13 @@ class HeartRateService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun sendHeartRateToPhone(bpm: Int) {
+   private fun sendHeartRateToPhone(bpm: Int) {
         val messageClient = Wearable.getMessageClient(this)
         Wearable.getNodeClient(this).connectedNodes.addOnSuccessListener { nodes ->
             for (node in nodes) {
-                messageClient.sendMessage(node.id, "/heartrate", bpm.toString().toByteArray())
+                // Try sending as a raw Integer byte array instead of a String
+                val buffer = java.nio.ByteBuffer.allocate(4).putInt(bpm)
+                messageClient.sendMessage(node.id, "/heartrate", buffer.array())
             }
         }
     }
