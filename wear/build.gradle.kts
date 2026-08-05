@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.hizkifw.heartosc" // <-- ADD THIS LINE HERE
+    namespace = "com.hizkifw.heartosc"
     compileSdk = 34
 
     defaultConfig {
@@ -14,8 +14,6 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
-    
-    // ... the rest of the file remains the same ...
 
     buildTypes {
         getByName("release") {
@@ -29,6 +27,15 @@ android {
 
     buildFeatures {
         viewBinding = true
+    }
+
+    // ADD THESE TWO BLOCKS:
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
