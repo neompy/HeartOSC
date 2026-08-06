@@ -1,4 +1,4 @@
-package red.kitsu.heartosc // Ensure this matches your project
+package red.kitsu.heartosc
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -22,7 +23,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var toggleButton: Button
     private var isTracking = false
 
-    // Listens for updates from our background service to update the UI
     private val heartRateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val bpm = intent?.getIntExtra("bpm", 0) ?: 0
@@ -35,15 +35,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Simple UI Layout
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = android.view.Gravity.CENTER
+            // Set background to pure black to save OLED battery
+            setBackgroundColor(android.graphics.Color.BLACK) 
         }
 
         statusText = TextView(this).apply {
             text = "Ready to track"
             textSize = 20f
+            setTextColor(android.graphics.Color.WHITE)
             textAlignment = TextView.TEXT_ALIGNMENT_CENTER
             setPadding(0, 0, 0, 30)
         }
@@ -62,7 +64,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Listen for updates from the service while the screen is on
         val filter = IntentFilter("HEART_RATE_UPDATE")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(heartRateReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -78,8 +79,6 @@ class MainActivity : ComponentActivity() {
 
     private fun checkPermissionsAndStart() {
         val permissions = mutableListOf(Manifest.permission.BODY_SENSORS)
-        
-        // Android 13+ requires notification permissions for Foreground Services
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -95,7 +94,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
@@ -117,6 +116,12 @@ class MainActivity : ComponentActivity() {
         isTracking = true
         toggleButton.text = "Stop Tracking"
         statusText.text = "Starting sensor..."
+
+        // VR HACK: Force screen to stay awake but dim it to absolute minimum
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val params = window.attributes
+        params.screenBrightness = 0.01f
+        window.attributes = params
     }
 
     private fun stopTracking() {
@@ -126,5 +131,11 @@ class MainActivity : ComponentActivity() {
         isTracking = false
         toggleButton.text = "Start Tracking"
         statusText.text = "Tracking stopped."
+
+        // VR HACK: Allow screen to turn off normally and restore brightness
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val params = window.attributes
+        params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        window.attributes = params
     }
 }
