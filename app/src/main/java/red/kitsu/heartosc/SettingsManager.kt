@@ -18,6 +18,9 @@ class SettingsManager(context: Context) {
         private const val KEY_HEARTBEAT_PULSE_PARAM = "heartbeat_pulse_param"
         private const val KEY_HEARTBEAT_PULSE_DURATION = "heartbeat_pulse_duration"
         private const val KEY_VRCOSC_COMPATIBILITY_ENABLED = "vrcosc_compatibility_enabled"
+        // --- ADDED: Key for our new Float toggle ---
+        private const val KEY_SEND_AS_FLOAT_ENABLED = "send_as_float_enabled"
+        
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_INPUT_SOURCE = "input_source"
 
@@ -32,6 +35,8 @@ class SettingsManager(context: Context) {
         const val DEFAULT_HEARTBEAT_PULSE_PARAM = "/avatar/parameters/isHRBeat"
         const val DEFAULT_HEARTBEAT_PULSE_DURATION = 200 // milliseconds
         const val DEFAULT_VRCOSC_COMPATIBILITY_ENABLED = true
+        // --- ADDED: Default value for our new Float toggle ---
+        const val DEFAULT_SEND_AS_FLOAT_ENABLED = false
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -64,6 +69,12 @@ class SettingsManager(context: Context) {
         prefs.getBoolean(KEY_VRCOSC_COMPATIBILITY_ENABLED, DEFAULT_VRCOSC_COMPATIBILITY_ENABLED)
     )
     val vrcoscCompatibilityEnabled: StateFlow<Boolean> = _vrcoscCompatibilityEnabled.asStateFlow()
+
+    // --- ADDED: State flow for the new Float toggle ---
+    private val _sendAsFloatEnabled = MutableStateFlow(
+        prefs.getBoolean(KEY_SEND_AS_FLOAT_ENABLED, DEFAULT_SEND_AS_FLOAT_ENABLED)
+    )
+    val sendAsFloatEnabled: StateFlow<Boolean> = _sendAsFloatEnabled.asStateFlow()
 
     fun setInputSource(source: String) {
         _inputSource.value = source
@@ -108,6 +119,12 @@ class SettingsManager(context: Context) {
     fun setVrcoscCompatibilityEnabled(enabled: Boolean) {
         _vrcoscCompatibilityEnabled.value = enabled
         prefs.edit().putBoolean(KEY_VRCOSC_COMPATIBILITY_ENABLED, enabled).apply()
+    }
+
+    // --- ADDED: Save function for the new Float toggle ---
+    fun setSendAsFloatEnabled(enabled: Boolean) {
+        _sendAsFloatEnabled.value = enabled
+        prefs.edit().putBoolean(KEY_SEND_AS_FLOAT_ENABLED, enabled).apply()
     }
 
     fun isOnboardingCompleted(): Boolean {
