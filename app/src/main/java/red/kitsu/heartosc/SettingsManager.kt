@@ -1,137 +1,385 @@
 package red.kitsu.heartosc
 
-import android.content.Context
-import android.content.SharedPreferences
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 
-class SettingsManager(context: Context) {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    viewModel: HeartRateViewModel,
+    onBackPressed: () -> Unit
+) {
+    val inputSource by viewModel.inputSource.collectAsState()
+    val oscHost by viewModel.oscHost.collectAsState()
+    val oscPort by viewModel.oscPort.collectAsState()
+    val hrParam by viewModel.hrParam.collectAsState()
+    val hrConnectedParam by viewModel.hrConnectedParam.collectAsState()
+    val heartbeatToggleParam by viewModel.heartbeatToggleParam.collectAsState()
+    val heartbeatPulseParam by viewModel.heartbeatPulseParam.collectAsState()
+    val heartbeatPulseDuration by viewModel.heartbeatPulseDuration.collectAsState()
+    val vrcoscCompatibilityEnabled by viewModel.vrcoscCompatibilityEnabled.collectAsState()
+    val sendAsFloatEnabled by viewModel.sendAsFloatEnabled.collectAsState(initial = false)
 
-    companion object {
-        private const val PREFS_NAME = "heart_osc_settings"
-        private const val KEY_OSC_HOST = "osc_host"
-        private const val KEY_OSC_PORT = "osc_port"
-        private const val KEY_HR_PARAM = "hr_param"
-        private const val KEY_HR_CONNECTED_PARAM = "hr_connected_param"
-        private const val KEY_HEARTBEAT_TOGGLE_PARAM = "heartbeat_toggle_param"
-        private const val KEY_HEARTBEAT_PULSE_PARAM = "heartbeat_pulse_param"
-        private const val KEY_HEARTBEAT_PULSE_DURATION = "heartbeat_pulse_duration"
-        private const val KEY_VRCOSC_COMPATIBILITY_ENABLED = "vrcosc_compatibility_enabled"
-        // --- ADDED: Key for our new Float toggle ---
-        private const val KEY_SEND_AS_FLOAT_ENABLED = "send_as_float_enabled"
-        
-        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
-        private const val KEY_INPUT_SOURCE = "input_source"
-
-        const val VAL_INPUT_SOURCE_BLE = "BLE"
-        const val VAL_INPUT_SOURCE_WEAR_OS = "WEAR_OS"
-
-        const val DEFAULT_OSC_HOST = "192.168.1.10"
-        const val DEFAULT_OSC_PORT = 9000
-        const val DEFAULT_HR_PARAM = "/avatar/parameters/HR"
-        const val DEFAULT_HR_CONNECTED_PARAM = "/avatar/parameters/isHRConnected"
-        const val DEFAULT_HEARTBEAT_TOGGLE_PARAM = "/avatar/parameters/HeartBeatToggle"
-        const val DEFAULT_HEARTBEAT_PULSE_PARAM = "/avatar/parameters/isHRBeat"
-        const val DEFAULT_HEARTBEAT_PULSE_DURATION = 200 // milliseconds
-        const val DEFAULT_VRCOSC_COMPATIBILITY_ENABLED = true
-        // --- ADDED: Default value for our new Float toggle ---
-        const val DEFAULT_SEND_AS_FLOAT_ENABLED = false
+    var inputSourceState by remember(inputSource) { mutableStateOf(inputSource) }
+    var hostText by remember(oscHost) { mutableStateOf(oscHost) }
+    var portText by remember(oscPort) { mutableStateOf(oscPort.toString()) }
+    var hrParamText by remember(hrParam) { mutableStateOf(hrParam) }
+    var hrConnectedParamText by remember(hrConnectedParam) { mutableStateOf(hrConnectedParam) }
+    var heartbeatToggleParamText by remember(heartbeatToggleParam) { mutableStateOf(heartbeatToggleParam) }
+    var heartbeatPulseParamText by remember(heartbeatPulseParam) { mutableStateOf(heartbeatPulseParam) }
+    var heartbeatPulseDurationText by remember(heartbeatPulseDuration) { mutableStateOf(heartbeatPulseDuration.toString()) }
+    var vrcoscCompatibilityChecked by remember(vrcoscCompatibilityEnabled) {
+        mutableStateOf(vrcoscCompatibilityEnabled)
+    }
+    var sendAsFloatChecked by remember(sendAsFloatEnabled) {
+        mutableStateOf(sendAsFloatEnabled)
     }
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackPressed) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.desc_back)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_section_input_source),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-    private val _inputSource = MutableStateFlow(prefs.getString(KEY_INPUT_SOURCE, VAL_INPUT_SOURCE_BLE) ?: VAL_INPUT_SOURCE_BLE)
-    val inputSource: StateFlow<String> = _inputSource.asStateFlow()
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { inputSourceState = SettingsManager.VAL_INPUT_SOURCE_BLE }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bluetooth,
+                        contentDescription = null,
+                        tint = if (inputSourceState == SettingsManager.VAL_INPUT_SOURCE_BLE) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.6f
+                        ),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.input_source_ble),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    RadioButton(
+                        selected = inputSourceState == SettingsManager.VAL_INPUT_SOURCE_BLE,
+                        onClick = { inputSourceState = SettingsManager.VAL_INPUT_SOURCE_BLE }
+                    )
+                }
 
-    private val _oscHost = MutableStateFlow(prefs.getString(KEY_OSC_HOST, DEFAULT_OSC_HOST) ?: DEFAULT_OSC_HOST)
-    val oscHost: StateFlow<String> = _oscHost.asStateFlow()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { inputSourceState = SettingsManager.VAL_INPUT_SOURCE_WEAR_OS }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Watch,
+                        contentDescription = null,
+                        tint = if (inputSourceState == SettingsManager.VAL_INPUT_SOURCE_WEAR_OS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.6f
+                        ),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = stringResource(R.string.input_source_wearos),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    RadioButton(
+                        selected = inputSourceState == SettingsManager.VAL_INPUT_SOURCE_WEAR_OS,
+                        onClick = { inputSourceState = SettingsManager.VAL_INPUT_SOURCE_WEAR_OS }
+                    )
+                }
+            }
 
-    private val _oscPort = MutableStateFlow(prefs.getInt(KEY_OSC_PORT, DEFAULT_OSC_PORT))
-    val oscPort: StateFlow<Int> = _oscPort.asStateFlow()
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
-    private val _hrParam = MutableStateFlow(prefs.getString(KEY_HR_PARAM, DEFAULT_HR_PARAM) ?: DEFAULT_HR_PARAM)
-    val hrParam: StateFlow<String> = _hrParam.asStateFlow()
+            Text(
+                text = stringResource(R.string.settings_section_osc_config),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-    private val _hrConnectedParam = MutableStateFlow(prefs.getString(KEY_HR_CONNECTED_PARAM, DEFAULT_HR_CONNECTED_PARAM) ?: DEFAULT_HR_CONNECTED_PARAM)
-    val hrConnectedParam: StateFlow<String> = _hrConnectedParam.asStateFlow()
+            Spacer(modifier = Modifier.height(8.dp))
 
-    private val _heartbeatToggleParam = MutableStateFlow(prefs.getString(KEY_HEARTBEAT_TOGGLE_PARAM, DEFAULT_HEARTBEAT_TOGGLE_PARAM) ?: DEFAULT_HEARTBEAT_TOGGLE_PARAM)
-    val heartbeatToggleParam: StateFlow<String> = _heartbeatToggleParam.asStateFlow()
+            OutlinedTextField(
+                value = hostText,
+                onValueChange = { hostText = it },
+                label = { Text(stringResource(R.string.label_osc_host)) },
+                placeholder = { Text(SettingsManager.DEFAULT_OSC_HOST) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
+            )
 
-    private val _heartbeatPulseParam = MutableStateFlow(prefs.getString(KEY_HEARTBEAT_PULSE_PARAM, DEFAULT_HEARTBEAT_PULSE_PARAM) ?: DEFAULT_HEARTBEAT_PULSE_PARAM)
-    val heartbeatPulseParam: StateFlow<String> = _heartbeatPulseParam.asStateFlow()
+            Text(
+                text = stringResource(R.string.help_osc_host),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    private val _heartbeatPulseDuration = MutableStateFlow(prefs.getInt(KEY_HEARTBEAT_PULSE_DURATION, DEFAULT_HEARTBEAT_PULSE_DURATION))
-    val heartbeatPulseDuration: StateFlow<Int> = _heartbeatPulseDuration.asStateFlow()
+            OutlinedTextField(
+                value = portText,
+                onValueChange = {
+                    if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                        portText = it
+                    }
+                },
+                label = { Text(stringResource(R.string.label_osc_port)) },
+                placeholder = { Text(SettingsManager.DEFAULT_OSC_PORT.toString()) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = portText.isNotEmpty() && (portText.toIntOrNull() == null ||
+                        portText.toInt() !in 1..65535)
+            )
 
-    private val _vrcoscCompatibilityEnabled = MutableStateFlow(
-        prefs.getBoolean(KEY_VRCOSC_COMPATIBILITY_ENABLED, DEFAULT_VRCOSC_COMPATIBILITY_ENABLED)
-    )
-    val vrcoscCompatibilityEnabled: StateFlow<Boolean> = _vrcoscCompatibilityEnabled.asStateFlow()
+            Text(
+                text = stringResource(R.string.help_osc_port),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    // --- ADDED: State flow for the new Float toggle ---
-    private val _sendAsFloatEnabled = MutableStateFlow(
-        prefs.getBoolean(KEY_SEND_AS_FLOAT_ENABLED, DEFAULT_SEND_AS_FLOAT_ENABLED)
-    )
-    val sendAsFloatEnabled: StateFlow<Boolean> = _sendAsFloatEnabled.asStateFlow()
+            Spacer(modifier = Modifier.height(24.dp))
 
-    fun setInputSource(source: String) {
-        _inputSource.value = source
-        prefs.edit().putString(KEY_INPUT_SOURCE, source).apply()
-    }
+            Text(
+                text = stringResource(R.string.settings_section_osc_params),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-    fun setOscHost(host: String) {
-        _oscHost.value = host
-        prefs.edit().putString(KEY_OSC_HOST, host).apply()
-    }
+            Spacer(modifier = Modifier.height(8.dp))
 
-    fun setOscPort(port: Int) {
-        _oscPort.value = port
-        prefs.edit().putInt(KEY_OSC_PORT, port).apply()
-    }
+            OutlinedTextField(
+                value = hrParamText,
+                onValueChange = { hrParamText = it },
+                label = { Text(stringResource(R.string.label_hr_parameter)) },
+                placeholder = { Text(SettingsManager.DEFAULT_HR_PARAM) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
+            )
 
-    fun setHrParam(param: String) {
-        _hrParam.value = param
-        prefs.edit().putString(KEY_HR_PARAM, param).apply()
-    }
+            Text(
+                text = stringResource(R.string.help_hr_parameter),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    fun setHrConnectedParam(param: String) {
-        _hrConnectedParam.value = param
-        prefs.edit().putString(KEY_HR_CONNECTED_PARAM, param).apply()
-    }
+            OutlinedTextField(
+                value = hrConnectedParamText,
+                onValueChange = { hrConnectedParamText = it },
+                label = { Text(stringResource(R.string.label_hr_connected_parameter)) },
+                placeholder = { Text(SettingsManager.DEFAULT_HR_CONNECTED_PARAM) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
+            )
 
-    fun setHeartbeatToggleParam(param: String) {
-        _heartbeatToggleParam.value = param
-        prefs.edit().putString(KEY_HEARTBEAT_TOGGLE_PARAM, param).apply()
-    }
+            Text(
+                text = stringResource(R.string.help_hr_connected_parameter),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    fun setHeartbeatPulseParam(param: String) {
-        _heartbeatPulseParam.value = param
-        prefs.edit().putString(KEY_HEARTBEAT_PULSE_PARAM, param).apply()
-    }
+            OutlinedTextField(
+                value = heartbeatToggleParamText,
+                onValueChange = { heartbeatToggleParamText = it },
+                label = { Text(stringResource(R.string.label_heartbeat_toggle_parameter)) },
+                placeholder = { Text(SettingsManager.DEFAULT_HEARTBEAT_TOGGLE_PARAM) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
+            )
 
-    fun setHeartbeatPulseDuration(duration: Int) {
-        _heartbeatPulseDuration.value = duration
-        prefs.edit().putInt(KEY_HEARTBEAT_PULSE_DURATION, duration).apply()
-    }
+            Text(
+                text = stringResource(R.string.help_heartbeat_toggle_parameter),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    fun setVrcoscCompatibilityEnabled(enabled: Boolean) {
-        _vrcoscCompatibilityEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_VRCOSC_COMPATIBILITY_ENABLED, enabled).apply()
-    }
+            OutlinedTextField(
+                value = heartbeatPulseParamText,
+                onValueChange = { heartbeatPulseParamText = it },
+                label = { Text(stringResource(R.string.label_heartbeat_pulse_parameter)) },
+                placeholder = { Text(SettingsManager.DEFAULT_HEARTBEAT_PULSE_PARAM) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii)
+            )
 
-    // --- ADDED: Save function for the new Float toggle ---
-    fun setSendAsFloatEnabled(enabled: Boolean) {
-        _sendAsFloatEnabled.value = enabled
-        prefs.edit().putBoolean(KEY_SEND_AS_FLOAT_ENABLED, enabled).apply()
-    }
+            Text(
+                text = stringResource(R.string.help_heartbeat_pulse_parameter),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
 
-    fun isOnboardingCompleted(): Boolean {
-        return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
-    }
+            OutlinedTextField(
+                value = heartbeatPulseDurationText,
+                onValueChange = {
+                    if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                        heartbeatPulseDurationText = it
+                    }
+                },
+                label = { Text(stringResource(R.string.label_pulse_duration)) },
+                placeholder = { Text(SettingsManager.DEFAULT_HEARTBEAT_PULSE_DURATION.toString()) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = heartbeatPulseDurationText.isNotEmpty() && (heartbeatPulseDurationText.toIntOrNull() == null ||
+                        heartbeatPulseDurationText.toInt() !in 1..5000)
+            )
 
-    fun setOnboardingCompleted() {
-        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
+            Text(
+                text = stringResource(R.string.help_pulse_duration),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = sendAsFloatChecked,
+                    onCheckedChange = { sendAsFloatChecked = it }
+                )
+                Text(
+                    text = stringResource(R.string.label_send_as_float),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = vrcoscCompatibilityChecked,
+                    onCheckedChange = { vrcoscCompatibilityChecked = it }
+                )
+                Text(
+                    text = stringResource(R.string.label_vrcosc_compatibility),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    viewModel.setInputSource(inputSourceState)
+                    viewModel.setOscHost(hostText)
+                    val port = portText.toIntOrNull()
+                    if (port != null && port in 1..65535) {
+                        viewModel.setOscPort(port)
+                    }
+                    viewModel.setHrParam(hrParamText)
+                    viewModel.setHrConnectedParam(hrConnectedParamText)
+                    viewModel.setHeartbeatToggleParam(heartbeatToggleParamText)
+                    viewModel.setHeartbeatPulseParam(heartbeatPulseParamText)
+                    val pulseDuration = heartbeatPulseDurationText.toIntOrNull()
+                    if (pulseDuration != null && pulseDuration in 1..5000) {
+                        viewModel.setHeartbeatPulseDuration(pulseDuration)
+                    }
+                    viewModel.setVrcoscCompatibilityEnabled(vrcoscCompatibilityChecked)
+                    viewModel.setSendAsFloatEnabled(sendAsFloatChecked)
+                    onBackPressed()
+                },
+                enabled = hostText.isNotBlank() &&
+                        portText.isNotEmpty() &&
+                        portText.toIntOrNull()?.let { it in 1..65535 } == true &&
+                        hrParamText.isNotBlank() &&
+                        hrConnectedParamText.isNotBlank() &&
+                        heartbeatToggleParamText.isNotBlank() &&
+                        heartbeatPulseParamText.isNotBlank() &&
+                        heartbeatPulseDurationText.isNotEmpty() &&
+                        heartbeatPulseDurationText.toIntOrNull()?.let { it in 1..5000 } == true,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.common_save))
+            }
+
+            OutlinedButton(
+                onClick = {
+                    inputSourceState = SettingsManager.VAL_INPUT_SOURCE_BLE
+                    hostText = SettingsManager.DEFAULT_OSC_HOST
+                    portText = SettingsManager.DEFAULT_OSC_PORT.toString()
+                    hrParamText = SettingsManager.DEFAULT_HR_PARAM
+                    hrConnectedParamText = SettingsManager.DEFAULT_HR_CONNECTED_PARAM
+                    heartbeatToggleParamText = SettingsManager.DEFAULT_HEARTBEAT_TOGGLE_PARAM
+                    heartbeatPulseParamText = SettingsManager.DEFAULT_HEARTBEAT_PULSE_PARAM
+                    heartbeatPulseDurationText = SettingsManager.DEFAULT_HEARTBEAT_PULSE_DURATION.toString()
+                    vrcoscCompatibilityChecked = SettingsManager.DEFAULT_VRCOSC_COMPATIBILITY_ENABLED
+                    sendAsFloatChecked = false
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.button_reset_defaults))
+            }
+        }
     }
 }
