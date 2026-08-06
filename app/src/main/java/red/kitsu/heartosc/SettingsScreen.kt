@@ -33,6 +33,7 @@ fun SettingsScreen(
     val heartbeatPulseParam by viewModel.heartbeatPulseParam.collectAsState()
     val heartbeatPulseDuration by viewModel.heartbeatPulseDuration.collectAsState()
     val vrcoscCompatibilityEnabled by viewModel.vrcoscCompatibilityEnabled.collectAsState()
+    val sendAsFloatEnabled by viewModel.sendAsFloatEnabled.collectAsState(initial = false)
 
     var inputSourceState by remember(inputSource) { mutableStateOf(inputSource) }
     var hostText by remember(oscHost) { mutableStateOf(oscHost) }
@@ -44,6 +45,9 @@ fun SettingsScreen(
     var heartbeatPulseDurationText by remember(heartbeatPulseDuration) { mutableStateOf(heartbeatPulseDuration.toString()) }
     var vrcoscCompatibilityChecked by remember(vrcoscCompatibilityEnabled) {
         mutableStateOf(vrcoscCompatibilityEnabled)
+    }
+    var sendAsFloatChecked by remember(sendAsFloatEnabled) {
+        mutableStateOf(sendAsFloatEnabled)
     }
 
     Scaffold(
@@ -299,6 +303,21 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
+                    checked = sendAsFloatChecked,
+                    onCheckedChange = { sendAsFloatChecked = it }
+                )
+                Text(
+                    text = "Send Heart Rate as Float (0.0 - 1.0)",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
                     checked = vrcoscCompatibilityChecked,
                     onCheckedChange = { vrcoscCompatibilityChecked = it }
                 )
@@ -327,6 +346,7 @@ fun SettingsScreen(
                         viewModel.setHeartbeatPulseDuration(pulseDuration)
                     }
                     viewModel.setVrcoscCompatibilityEnabled(vrcoscCompatibilityChecked)
+                    viewModel.setSendAsFloatEnabled(sendAsFloatChecked)
                     onBackPressed()
                 },
                 enabled = hostText.isNotBlank() &&
@@ -354,6 +374,7 @@ fun SettingsScreen(
                     heartbeatPulseParamText = SettingsManager.DEFAULT_HEARTBEAT_PULSE_PARAM
                     heartbeatPulseDurationText = SettingsManager.DEFAULT_HEARTBEAT_PULSE_DURATION.toString()
                     vrcoscCompatibilityChecked = SettingsManager.DEFAULT_VRCOSC_COMPATIBILITY_ENABLED
+                    sendAsFloatChecked = false
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
