@@ -7,10 +7,7 @@ internal object VrcoscHeartrateParameters {
 
     const val CONNECTED = "$PREFIX/Connected"
     const val VALUE = "$PREFIX/Value"
-    
-    // --- CHANGED: This now points directly to your VRChat collar parameter ---
-    const val NORMALISED = "/avatar/parameters/Heartrate2"
-    
+    const val NORMALISED = "$PREFIX/Normalised"
     const val AVERAGE = "$PREFIX/Average"
     const val BEAT = "$PREFIX/Beat"
 
@@ -22,9 +19,7 @@ internal object VrcoscHeartrateParameters {
 
     const val AVERAGE_PERIOD_MS = 10_000L
     const val RECEIVING_TIMEOUT_MS = 30_000L
-    
-    // --- CHANGED: 255 forces the float math to align perfectly with your collar's 0-255 range ---
-    private const val NORMALISED_UPPER_BOUND = 255f
+    private const val NORMALISED_UPPER_BOUND = 240f
 
     fun normalised(bpm: Int): Float = bpm / NORMALISED_UPPER_BOUND
 
