@@ -16,7 +16,8 @@ class VRChatOSCSender(
     private val hrConnectedParam: String,
     private val heartbeatToggleParam: String,
     private val heartbeatPulseParam: String,
-    val vrcoscCompatibilityEnabled: Boolean
+    val vrcoscCompatibilityEnabled: Boolean,
+    private val sendAsFloat: Boolean // --- ADDED: Accepts the toggle from ViewModel ---
 ) {
     companion object {
         private const val TAG = "VRChatOSCSender"
@@ -69,8 +70,17 @@ class VRChatOSCSender(
     internal fun updateHeartRateSample(sample: HeartRateSample) {
         if (currentHeartRate != sample.bpm) {
             currentHeartRate = sample.bpm
-            sendIntParameter(hrParam, sample.bpm)
-            Log.d(TAG, "Sent HR: ${sample.bpm} bpm")
+            
+            // --- CHANGED: Check the toggle before sending ---
+            if (sendAsFloat) {
+                // Divide by 255 to create a 0.0 to 1.0 float for assets like the collar
+                sendFloatParameter(hrParam, sample.bpm / 255f)
+                Log.d(TAG, "Sent HR: ${sample.bpm} bpm (as Float: ${sample.bpm / 255f})")
+            } else {
+                // Send as standard raw integer
+                sendIntParameter(hrParam, sample.bpm)
+                Log.d(TAG, "Sent HR: ${sample.bpm} bpm (as Int)")
+            }
         }
 
         if (vrcoscCompatibilityEnabled) {
