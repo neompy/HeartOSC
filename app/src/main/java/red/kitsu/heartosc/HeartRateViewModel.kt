@@ -22,7 +22,8 @@ private data class OscConfig(
     val hrConnectedParam: String,
     val heartbeatToggleParam: String,
     val heartbeatPulseParam: String,
-    val vrcoscCompatibilityEnabled: Boolean
+    val vrcoscCompatibilityEnabled: Boolean,
+    val sendAsFloatEnabled: Boolean // --- ADDED: Float toggle state in config ---
 )
 
 class HeartRateViewModel(application: Application) : AndroidViewModel(application) {
@@ -54,6 +55,9 @@ class HeartRateViewModel(application: Application) : AndroidViewModel(applicatio
     val heartbeatPulseParam = settingsManager.heartbeatPulseParam
     val heartbeatPulseDuration = settingsManager.heartbeatPulseDuration
     val vrcoscCompatibilityEnabled = settingsManager.vrcoscCompatibilityEnabled
+    
+    // --- ADDED: Expose float toggle to UI ---
+    val sendAsFloatEnabled = settingsManager.sendAsFloatEnabled
 
     // Expose pulse state for UI
     val heartbeatPulse = pulseGenerator.pulseState
@@ -94,22 +98,24 @@ class HeartRateViewModel(application: Application) : AndroidViewModel(applicatio
         // Initialize OSC sender with current settings
         viewModelScope.launch {
             combine(
-                combine(oscHost, oscPort) { host, port -> Pair(host, port) },
+                // --- CHANGED: Group host, port, and sendAsFloatEnabled together ---
+                combine(oscHost, oscPort, sendAsFloatEnabled) { host, port, sendAsFloat -> Triple(host, port, sendAsFloat) },
                 combine(hrParam, hrConnectedParam) { hr, hrConn -> Pair(hr, hrConn) },
                 combine(
                     heartbeatToggleParam,
                     heartbeatPulseParam,
                     vrcoscCompatibilityEnabled
                 ) { hbToggle, hbPulse, vrcoscEnabled -> Triple(hbToggle, hbPulse, vrcoscEnabled) }
-            ) { hostPort, hrParams, hbParams ->
+            ) { hostPortFloat, hrParams, hbParams ->
                 OscConfig(
-                    hostPort.first,
-                    hostPort.second,
+                    hostPortFloat.first,
+                    hostPortFloat.second,
                     hrParams.first,
                     hrParams.second,
                     hbParams.first,
                     hbParams.second,
-                    hbParams.third
+                    hbParams.third,
+                    hostPortFloat.third // --- ADDED: Pass the float toggle state into OscConfig ---
                 )
             }.collect { config ->
                 // Recreate OSC sender when settings change
@@ -128,7 +134,8 @@ class HeartRateViewModel(application: Application) : AndroidViewModel(applicatio
                     config.hrConnectedParam,
                     config.heartbeatToggleParam,
                     config.heartbeatPulseParam,
-                    config.vrcoscCompatibilityEnabled
+                    config.vrcoscCompatibilityEnabled,
+                    config.sendAsFloatEnabled // --- ADDED: Pass this straight into the Sender ---
                 )
                 oscSender = sender
 
@@ -283,6 +290,11 @@ class HeartRateViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun setVrcoscCompatibilityEnabled(enabled: Boolean) {
         settingsManager.setVrcoscCompatibilityEnabled(enabled)
+    }
+
+    // --- ADDED: Forward the command from SettingsScreen down to SettingsManager ---
+    fun setSendAsFloatEnabled(enabled: Boolean) {
+        settingsManager.setSendAsFloatEnabled(enabled)
     }
 
     @RequiresPermission(allOf = [Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT])
